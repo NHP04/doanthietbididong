@@ -1,5 +1,5 @@
 import os
-import label_map
+from label_map import label_map
 from flask import Flask, request, jsonify,send_from_directory
 from werkzeug.utils import secure_filename
 from models import *
@@ -12,6 +12,7 @@ upload = FOLDER_UPLOAD
 food_images_folder = FOOD_IMAGES_FOLDER
 conn_str = SQL_SERVER_CONN_STR
 
+@app.route("/api/predict", methods=["POST"])
 def predict():
     if "image" not in request.files:
         return jsonify({"status": "fail", "message": "No image"}), 400
@@ -20,7 +21,7 @@ def predict():
     image_name = secure_filename(image.filename)
     image_path = os.path.join(upload, image_name)
 
-
+    image.save(image_path)
     try:
         image_tensor = preprocess_image(image_path).to(device)
 
@@ -69,7 +70,7 @@ def food_images(filename):
 
 @app.route("/")
 def home():
-    return "Flask server running. Use /predict, /food_data.json, or /food_images/<file>"
+    return "Flask server running. Use /predict, /api/dishes, /api/dish/<int:dish_id> or /food_images/<file>"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
