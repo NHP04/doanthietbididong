@@ -1,0 +1,74 @@
+import os
+import label_map
+from flask import Flask, request, jsonify,send_from_directory
+from werkzeug.utils import secure_filename
+from models import *
+from utils import *
+from config import *
+
+app = Flask(__name__)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+upload = FOLDER_UPLOAD
+food_images_folder = FOOD_IMAGES_FOLDER
+conn_str = SQL_SERVER_CONN_STR
+
+def predict():
+    if "image" not in request.files:
+        return jsonify({"status": "fail", "message": "No image"}), 400
+
+    image = request.files["image"]
+    image_name = secure_filename(image.filename)
+    image_path = os.path.join(upload, image_name)
+
+
+    try:
+        image_tensor = preprocess_image(image_path).to(device)
+
+        with torch.no_grad():
+            probs_list = []
+            for model in models:
+                outputs = model(image_tensor)
+                probs = torch.softmax(outputs, dim=1)
+                probs_list.append(probs)
+
+            avg_probs = torch.stack(probs_list).mean(dim=0)
+            predicted = torch.argmax(avg_probs, dim=1)
+            prediction_idx = predicted.item()
+            confidence = avg_probs[0][prediction_idx].item()
+            predicted_label = label_map[prediction_idx]
+
+            key_name = predicted_label
+            food_info = get_food_info_by_key(key_name)
+
+            CONFIDENCE_THRESHOLD = 0.6
+            if not food_info or confidence < CONFIDENCE_THRESHOLD:
+                return jsonify({
+                    "status": "fail",
+                    "message": "Chưa dự đoán được món ăn, vui lòng thử lại"
+                }), 200
+        return jsonify(food_info)
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/dishes", methods=["GET"])
+def get_all_dishes():
+    dishes = get_all()
+    return jsonify(dishes)
+
+@app.route("/api/dish/<int:dish_id>", methods=["GET"])
+def get_dish_detail(dish_id):
+    dish_info = get_food_info_by_key(dish_id)
+    return jsonify(dish_info), 200
+
+@app.route("/food_images/<path:filename>")
+def food_images(filename):
+    return send_from_directory(FOOD_IMAGES_FOLDER, filename)
+
+@app.route("/")
+def home():
+    return "Flask server running. Use /predict, /food_data.json, or /food_images/<file>"
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
