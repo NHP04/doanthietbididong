@@ -38,7 +38,8 @@ def predict():
             predicted_label = label_map[prediction_idx]
 
             key_name = predicted_label
-            food_info = get_food_info_by_key(key_name)
+            id = key_to_id(key_name)
+            food_info = get_food_info_by_id(id)
 
             CONFIDENCE_THRESHOLD = 0.6
             if not food_info or confidence < CONFIDENCE_THRESHOLD:
@@ -59,7 +60,7 @@ def get_all_dishes():
 
 @app.route("/api/dish/<int:dish_id>", methods=["GET"])
 def get_dish_detail(dish_id):
-    dish_info = get_food_info_by_key(dish_id)
+    dish_info = get_food_info_by_id(dish_id)
     return jsonify(dish_info), 200
 
 @app.route("/food_images/<path:filename>")

@@ -26,32 +26,54 @@ def preprocess_image(image_bytes):
 def get_connection():
     return pyodbc.connect(conn_str)
 
-def get_food_info_by_key(key):
+def key_to_id(key):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, key_name, name, description FROM dishes WHERE key_name = ?", (key,))
+    cursor.execute("SELECT id FROM dishes WHERE key_name = ?", (key,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return row[0]  # trả về dish_id
+
+
+def get_food_info_by_id(dish_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Truy vấn món ăn theo id
+    cursor.execute("SELECT id, key_name, name, description FROM dishes WHERE id = ?", (dish_id,))
     row = cursor.fetchone()
 
     if not row:
         conn.close()
         return None
-    dish_id = row[0]
-    cursor = conn.cursor()
+
+    key_name = row[1]
+    name = row[2]
+    description = row[3]
+
+    # Lấy danh sách nguyên liệu
     cursor.execute("SELECT ingredient FROM ingredients WHERE dish_id = ?", (dish_id,))
     ingredients = [r[0] for r in cursor.fetchall()]
+
+    # Lấy hướng dẫn chế biến
     cursor.execute("SELECT instruction FROM instructions WHERE dish_id = ? ORDER BY id", (dish_id,))
     instructions = [r[0] for r in cursor.fetchall()]
+
     conn.close()
 
     return {
-            "id": dish_id,
-            "key": row[1],
-            "name": row[2],
-            "description": row[3],
-            "image": f"/food_images/{row[1]}.jpg",
-            "ingredients": ingredients,
-            "instructions": instructions
+        "id": dish_id,
+        "key": key_name,
+        "name": name,
+        "description": description,
+        "image": f"/food_images/{key_name}.jpg",
+        "ingredients": ingredients,
+        "instructions": instructions
     }
+
+
 
 def get_all():
     conn = get_connection()
