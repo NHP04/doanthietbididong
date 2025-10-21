@@ -1,12 +1,12 @@
 
-FOLDER_UPLOAD=r"D:\DoAnCoSo\server\Upload"
+FOLDER_UPLOAD=r"D:\STUDY\LTDD\DoAnHocPhan\new_server\doanthietbididong\server\Upload"
 
-FOOD_IMAGES_FOLDER = r"D:\DoAnCoSo\server\food_images"
+FOOD_IMAGES_FOLDER = r"D:\STUDY\LTDD\DoAnHocPhan\new_server\doanthietbididong\server\food_images"
 
 # Chuỗi kết nối SQL Server
 SQL_SERVER_CONN_STR = (
     "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=ADMIN-PC\\DUYMSSQL;"
+    "SERVER=MSI;"
     "DATABASE=recipes_db;"
     "Trusted_Connection=yes;"
 )

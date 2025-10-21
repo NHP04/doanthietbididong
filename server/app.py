@@ -42,6 +42,9 @@ def predict():
             id = key_to_id(key_name)
             food_info = get_food_info_by_id(id)
 
+            print(f"{predicted}:{confidence}:{predicted_label}")
+            print(f"{food_info}")
+
             CONFIDENCE_THRESHOLD = 0.6
             if not food_info or confidence < CONFIDENCE_THRESHOLD:
                 return jsonify({
