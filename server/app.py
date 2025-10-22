@@ -5,12 +5,16 @@ from werkzeug.utils import secure_filename
 from models import *
 from utils import *
 from config import *
+from PIL import Image
 
 app = Flask(__name__)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 upload = FOLDER_UPLOAD
 food_images_folder = FOOD_IMAGES_FOLDER
 conn_str = SQL_SERVER_CONN_STR
+app.config['JSON_AS_ASCII'] = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 @app.route("/api/predict", methods=["POST"])
 def predict():
@@ -74,6 +78,42 @@ def food_images(filename):
 @app.route("/")
 def home():
     return "Flask server running. Use /predict, /api/dishes, /api/dish/<int:dish_id> or /food_images/<file>"
+
+from PIL import Image
+
+@app.route("/resize_images", methods=["GET"])
+def resize_images():
+    """
+    Resize toàn bộ ảnh trong thư mục food_images về 512x512
+    Chỉ cần chạy 1 lần để đồng bộ kích thước ảnh.
+    """
+    resized_count = 0
+    skipped_count = 0
+    errors = []
+
+    for filename in os.listdir(FOOD_IMAGES_FOLDER):
+        file_path = os.path.join(FOOD_IMAGES_FOLDER, filename)
+        if not os.path.isfile(file_path):
+            continue
+
+        try:
+            with Image.open(file_path) as img:
+                if img.size == (512, 512):
+                    skipped_count += 1
+                    continue
+
+                img = img.convert("RGB")
+                img = img.resize((512, 512), Image.Resampling.LANCZOS)
+                img.save(file_path, quality=90)
+                resized_count += 1
+        except Exception as e:
+            errors.append(f"{filename}: {e}")
+
+    return jsonify({
+        "status": "success",
+        "message": f"✅ Đã resize {resized_count} ảnh (bỏ qua {skipped_count}).",
+        "errors": errors
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
