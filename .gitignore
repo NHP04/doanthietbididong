@@ -1,0 +1,35 @@
+# Node.js / Next.js
+node_modules/
+.next/
+dist/
+build/
+
+# Python
+__pycache__/
+venv/
+*.pyc
+*.pyo
+*.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.suo
+*.user
+*.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+/new_server/
+/server/
+
+new_server/server/model/*.pth
+server/model/*.pth
