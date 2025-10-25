@@ -1,0 +1,36 @@
+name: doanthietbididong
+description: App quản lí công thức nấu ăn
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Thư viện cho phần đăng nhập
+  cupertino_icons: ^1.0.8
+  flutter_svg: ^1.1.0
+
+  # Thư viện cho phần thân ứng dụng (đã sửa lỗi trùng lặp)
+  http: ^1.2.2
+  cached_network_image: ^3.3.1
+  diacritic: ^0.1.2
+  image_picker: ^1.0.7
+  shared_preferences: ^2.2.3
+  flutter_cache_manager: ^3.4.0
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    # Đảm bảo có cả hai thư mục assets
+    - assets/images/
+    - assets/icons/
